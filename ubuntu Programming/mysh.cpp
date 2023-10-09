@@ -1,26 +1,26 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>// ¹®ÀÚ¿­ Ã³¸®
-#include <dirent.h>// µğ·ºÅÍ¸®, ÆÄÀÏ Á¶ÀÛÀ» À§ÇÑ ÇÔ¼ö¿Í ±¸Á¶Ã¼ Á¦°ø
-#include <errno.h>//¿À·ù ÄÚµå °ü¸®
-#include <sys/stat.h>// ÆÄÀÏ »óÅÂ ¹× Æ¯¼º Á¶»ç ÇÔ¼ö Á¦°ø
-#include <sys/types.h>// µ¥ÀÌÅÍ Å¸ÀÔ, ±âº»Àû ½Ã½ºÅÛ ·çÆ¾ Á¤ÀÇ Æ÷ÇÔ
-#include <unistd.h> // POSIX ¿î¿µÃ¼Á¦ ¼­ºñ½º¿Í »óÈ£ÀÛ¿ëÇÏ±â À§ÇØ  ´Ù¾çÇÏ ½Ã½ºÅÛ È£Ãâ Á¦°ø
+#include <string.h>// ë¬¸ìì—´ ì²˜ë¦¬
+#include <dirent.h>// ë””ë ‰í„°ë¦¬, íŒŒì¼ ì¡°ì‘ì„ ìœ„í•œ í•¨ìˆ˜ì™€ êµ¬ì¡°ì²´ ì œê³µ
+#include <errno.h>//ì˜¤ë¥˜ ì½”ë“œ ê´€ë¦¬
+#include <sys/stat.h>// íŒŒì¼ ìƒíƒœ ë° íŠ¹ì„± ì¡°ì‚¬ í•¨ìˆ˜ ì œê³µ
+#include <sys/types.h>// ë°ì´í„° íƒ€ì…, ê¸°ë³¸ì  ì‹œìŠ¤í…œ ë£¨í‹´ ì •ì˜ í¬í•¨
+#include <unistd.h> // POSIX ìš´ì˜ì²´ì œ ì„œë¹„ìŠ¤ì™€ ìƒí˜¸ì‘ìš©í•˜ê¸° ìœ„í•´  ë‹¤ì–‘í•˜ ì‹œìŠ¤í…œ í˜¸ì¶œ ì œê³µ
 
 
-//strtol(¼ıÀÚ°¡ µç ¹®ÀÚ¿­, null, ¸îÁø¼ö·Î ÇÒ°ÇÁö)
+//strtol(ìˆ«ìê°€ ë“  ë¬¸ìì—´, null, ëª‡ì§„ìˆ˜ë¡œ í• ê±´ì§€)
 
 #define MAX_CMDLINE_SIZE    (128)
 #define MAX_CMD_SIZE        (32)
 #define MAX_ARG             (4)
 
-// ÇÔ¼ö Æ÷ÀÎÅÍ º¯¼ö¸¦ ¼±¾ğÇÒ ¶§´Â ±×³É typedef ¾øÀÌ ÇØµµ µÇÁö¸¸
-// Ãß°¡µÇ¸é ¼±¾ğÇÒ ¶§ ÇÔ¼ö¸íÀ¸·Î °£´ÜÇÏ°Ô ÀÛ¼º°¡´É
+// í•¨ìˆ˜ í¬ì¸í„° ë³€ìˆ˜ë¥¼ ì„ ì–¸í•  ë•ŒëŠ” ê·¸ëƒ¥ typedef ì—†ì´ í•´ë„ ë˜ì§€ë§Œ
+// ì¶”ê°€ë˜ë©´ ì„ ì–¸í•  ë•Œ í•¨ìˆ˜ëª…ìœ¼ë¡œ ê°„ë‹¨í•˜ê²Œ ì‘ì„±ê°€ëŠ¥
 typedef int  (*cmd_func_t)(int argc, char **argv);
 typedef void (*usage_func_t)(void);
 
 
-// ¸í·É¾î ±¸Á¶Ã¼
+// ëª…ë ¹ì–´ êµ¬ì¡°ì²´
 typedef struct cmd_t {
     char            cmd_str[MAX_CMD_SIZE];
     cmd_func_t      cmd_func;
@@ -29,7 +29,7 @@ typedef struct cmd_t {
 } cmd_t;
 
 
-// ¸ÅÅ©·Î ÇÔ¼ö                  // cmd_help µîÀ¸·Î ÀÔ·ÂµÇ¾îÁü
+// ë§¤í¬ë¡œ í•¨ìˆ˜                  // cmd_help ë“±ìœ¼ë¡œ ì…ë ¥ë˜ì–´ì§
 #define DECLARE_CMDFUNC(str)    int cmd_##str(int argc, char **argv); \
                                 void usage_##str(void)
 DECLARE_CMDFUNC(help);
@@ -40,21 +40,21 @@ DECLARE_CMDFUNC(mv);
 DECLARE_CMDFUNC(ls);
 DECLARE_CMDFUNC(quit);
 
-//°úÁ¦ 5
-//ls Ãß°¡±¸Çö (ÆÄÀÏ Á¾·ù, ÆÄÀÏ UID, GID. ÆÄÀÏÀÇ Á¢±Ù, ¼öÁ¤, »ı¼º ½Ã°£ °ª. ÇÏµå ¸µÅ© ¼ö.)
-DECLARE_CMDFUNC(ln);//ÇÏµå¸µÅ©
+//ê³¼ì œ 5
+//ls ì¶”ê°€êµ¬í˜„ (íŒŒì¼ ì¢…ë¥˜, íŒŒì¼ UID, GID. íŒŒì¼ì˜ ì ‘ê·¼, ìˆ˜ì •, ìƒì„± ì‹œê°„ ê°’. í•˜ë“œ ë§í¬ ìˆ˜.)
+DECLARE_CMDFUNC(ln);//í•˜ë“œë§í¬
 DECLARE_CMDFUNC(rm);
 
-//°úÁ¦6
+//ê³¼ì œ6
 DECLARE_CMDFUNC(chmod);
-//ln Ãß°¡ ±¸Çö (½Éº¼¸¯ ¸µÅ©)
-//ls (ÆÄÀÏ Á¤º¸+ ÆÄÀÏ Å©±â)
+//ln ì¶”ê°€ êµ¬í˜„ (ì‹¬ë³¼ë¦­ ë§í¬)
+//ls (íŒŒì¼ ì •ë³´+ íŒŒì¼ í¬ê¸°)
 DECLARE_CMDFUNC(cat);
 DECLARE_CMDFUNC(cp);
 
 /* Command List */
 static cmd_t cmd_list[] = {
-    //¸í·É¾î ¸í·É¾îÇÔ¼ö ¸í·É¾î»ç¿ë¹ı ¸í·É¾î±â´É 
+    //ëª…ë ¹ì–´ ëª…ë ¹ì–´í•¨ìˆ˜ ëª…ë ¹ì–´ì‚¬ìš©ë²• ëª…ë ¹ì–´ê¸°ëŠ¥ 
     {"help",    cmd_help,    usage_help,    "show usage, ex) help <command>"},
     {"mkdir",   cmd_mkdir,   usage_mkdir,   "create directory"},
     {"rmdir",   cmd_rmdir,   usage_rmdir,   "remove directory"},
@@ -71,12 +71,12 @@ static cmd_t cmd_list[] = {
     {"cp",      cmd_cp,     usage_cp,       ""},
 };
 
-// »ó¼ö´Â ¼öµ¿ÀûÀ¸·Î °ü¸®ÇÏÁö ¾Ê°Ô °è»ê½ÄÀ¸·Î
+// ìƒìˆ˜ëŠ” ìˆ˜ë™ì ìœ¼ë¡œ ê´€ë¦¬í•˜ì§€ ì•Šê²Œ ê³„ì‚°ì‹ìœ¼ë¡œ
 const int command_num = sizeof(cmd_list) / sizeof(cmd_t);
-static char *chroot_path = "/tmp/test"; // »óÀ§ °æ·Î
-static char *current_dir; // ÇöÀç °æ·Î
+static char *chroot_path = "/tmp/test"; // ìƒìœ„ ê²½ë¡œ
+static char *current_dir; // í˜„ì¬ ê²½ë¡œ
 
-//¸í·É¾î Á¸Àç À¯¹« ÇÔ¼ö
+//ëª…ë ¹ì–´ ì¡´ì¬ ìœ ë¬´ í•¨ìˆ˜
 static int search_command(char *cmd)
 {
     int i;
@@ -92,7 +92,7 @@ static int search_command(char *cmd)
     return (-1);
 }
 
-// ½ÇÁ¦ ÁÖ¼Ò °¡Á®¿À±â
+// ì‹¤ì œ ì£¼ì†Œ ê°€ì ¸ì˜¤ê¸°
 static void get_realpath(char *usr_path, char *result)
 {
     char *stack[32];
@@ -102,48 +102,48 @@ static void get_realpath(char *usr_path, char *result)
     int   i;
 #define PATH_TOKEN   "/"
     
-    //·çÆ®·Î ÀÌµ¿
+    //ë£¨íŠ¸ë¡œ ì´ë™
     if (usr_path[0] == '/') {
-        //¹®ÀÚ¿­ º¹»ç ÇÔ¼ö
+        //ë¬¸ìì—´ ë³µì‚¬ í•¨ìˆ˜
         strncpy(fullpath, usr_path, sizeof(fullpath)-1);
     }
     else {
-        //¹®ÀÚ¿­À» Çü½ÄÈ­ -> ´Ù¸¥ ¹®ÀÚ¿­·Î ÀúÀå
-        //ÀúÀåÇÒ °ø°£, ¹öÆÛÅ©±â, ¹®ÀÚ¿­ Çü½Ä, ÀúÀåÇÒ ¹®ÀÚ¿­µé(ÇöÀç ÁÖ¼Ò)
+        //ë¬¸ìì—´ì„ í˜•ì‹í™” -> ë‹¤ë¥¸ ë¬¸ìì—´ë¡œ ì €ì¥
+        //ì €ì¥í•  ê³µê°„, ë²„í¼í¬ê¸°, ë¬¸ìì—´ í˜•ì‹, ì €ì¥í•  ë¬¸ìì—´ë“¤(í˜„ì¬ ì£¼ì†Œ)
         snprintf(fullpath, sizeof(fullpath)-1, "%s/%s", current_dir + strlen(chroot_path), usr_path);
     }
 
     /* parsing */
-    //±¸ºĞÀÚ·Î ºĞÇÒÇÏ¿© ¹è¿­·Î ÀúÀå
+    //êµ¬ë¶„ìë¡œ ë¶„í• í•˜ì—¬ ë°°ì—´ë¡œ ì €ì¥
     tok = strtok(fullpath, PATH_TOKEN);
     if (tok == NULL) {
         goto out;
     }
 
     do {
-        //¹®ÀÚ¿­ ºñ±³; µ¿ÀÏÇÏ¸é 0, ÀÛÀ¸¸é À½¼ö, Å©¸é ¾ç¼ö
-        // . ÀÌ¸é ÇöÀç À§Ä¡ÀÌ¹Ç·Î ½ºÅµ
+        //ë¬¸ìì—´ ë¹„êµ; ë™ì¼í•˜ë©´ 0, ì‘ìœ¼ë©´ ìŒìˆ˜, í¬ë©´ ì–‘ìˆ˜
+        // . ì´ë©´ í˜„ì¬ ìœ„ì¹˜ì´ë¯€ë¡œ ìŠ¤í‚µ
         if (strcmp(tok, ".") == 0 || strcmp(tok, "") == 0) {
             ; // skip
         }
-        // ..ÀÌ¸é ÀÌÀü À§Ä¡·Î
+        // ..ì´ë©´ ì´ì „ ìœ„ì¹˜ë¡œ
         else if (strcmp(tok, "..") == 0) {
             if (index > 0) index--;
         }
-        // ½ºÅÃ¿¡ ÀúÀå
+        // ìŠ¤íƒì— ì €ì¥
         else {
             stack[index++] = tok;
         }
     } while ((tok = strtok(NULL, PATH_TOKEN)) && (index < 32));
 
 out:
-    //result¿¡ chroot_path °ª ÀúÀå
+    //resultì— chroot_path ê°’ ì €ì¥
     strcpy(result, chroot_path);
 
     // TODO: boundary check
-    // ¸¶Áö¸· /·Î ³¡³ª±â
+    // ë§ˆì§€ë§‰ /ë¡œ ëë‚˜ê¸°
     for (i = 0; i < index; i++) {
-        //¹®ÀÚ¿­ ÀÌ¾î ºÙÀÌ±â
+        //ë¬¸ìì—´ ì´ì–´ ë¶™ì´ê¸°
         strcat(result, "/");
         strcat(result, stack[i]);
     }
@@ -155,60 +155,60 @@ int main(int argc, char **argv)
     char *cmd_argv[MAX_ARG];
     int  cmd_argc, i, ret;
 
-    //¸í·É¾î µ¿ÀûÇÒ´ç
+    //ëª…ë ¹ì–´ ë™ì í• ë‹¹
     command = (char*) malloc(MAX_CMDLINE_SIZE);
-    //µ¿ÀûÇÒ´çÀÌ ¾ÈµÇ¸é ¿¡·¯
+    //ë™ì í• ë‹¹ì´ ì•ˆë˜ë©´ ì—ëŸ¬
     if (command == NULL) {
         perror("command malloc");
         exit(1);
     }
-    // ÇöÀç °æ·Î µ¿Àû ÇÒ´ç
+    // í˜„ì¬ ê²½ë¡œ ë™ì  í• ë‹¹
     current_dir = (char*) malloc(MAX_CMDLINE_SIZE);
     if (current_dir == NULL) {
         perror("current_dir malloc");
         free(command);
         exit(1);
     }
-    // "/tmp/test" ÀÌ ¾ø´Ù¸é ¸¸µé±â
+    // "/tmp/test" ì´ ì—†ë‹¤ë©´ ë§Œë“¤ê¸°
     if (chdir(chroot_path) < 0) {
         mkdir(chroot_path, 0755);
         chdir(chroot_path);
     }
 
 
-    //ÇöÀç ÇÁ·Î¼¼½ºÀÇ ·çÆ® µğ·ºÅÍ¸®°¡ ÁöÁ¤µÈ µğ·ºÅÍ¸®·Î º¯°æ
+    //í˜„ì¬ í”„ë¡œì„¸ìŠ¤ì˜ ë£¨íŠ¸ ë””ë ‰í„°ë¦¬ê°€ ì§€ì •ëœ ë””ë ‰í„°ë¦¬ë¡œ ë³€ê²½
     // chroot(chroot_path);
 
 
     do {
-        // ÇöÀç °æ·Î¸¦ ¹Ş¾Æ¿À´Â 
+        // í˜„ì¬ ê²½ë¡œë¥¼ ë°›ì•„ì˜¤ëŠ” 
         if (getcwd(current_dir, MAX_CMDLINE_SIZE) == NULL) {
             perror("getcwd");
             break;
         }
 
-        //ÇöÀç °æ·Î¿Í ·çÆ® °æ·ÎÀÇ ±æÀÌ°¡ °°´Ù -> ÇöÀç °æ·Î°¡ ·çÆ® °æ·Î´Ù -> / Ãâ·Â
+        //í˜„ì¬ ê²½ë¡œì™€ ë£¨íŠ¸ ê²½ë¡œì˜ ê¸¸ì´ê°€ ê°™ë‹¤ -> í˜„ì¬ ê²½ë¡œê°€ ë£¨íŠ¸ ê²½ë¡œë‹¤ -> / ì¶œë ¥
         if (strlen(current_dir) == strlen(chroot_path)) {
             printf("/"); // for root path
         }
-        // ÇöÀç °æ·Î¿¡ ´ëÇØ¼­ Ãß°¡ Ãâ·Â “G $ Ãâ·Â 
+        // í˜„ì¬ ê²½ë¡œì— ëŒ€í•´ì„œ ì¶”ê°€ ì¶œë ¥ Â“G $ ì¶œë ¥ 
         printf("%s $ ", current_dir + strlen(chroot_path));
 
-        // command¸¦ °¡Á®¿À´Âµ¥ null°ªÀÌ¸é while¹® Á¾·á
+        // commandë¥¼ ê°€ì ¸ì˜¤ëŠ”ë° nullê°’ì´ë©´ whileë¬¸ ì¢…ë£Œ
         if (fgets(command, MAX_CMDLINE_SIZE-1, stdin) == NULL) break;
 
         
         /* get arguments */
-        // command °ªÀ» °ø¹é°ú \n°ªÀ» ÅëÇØ ºĞÇÒÇÑ´Ù.
+        // command ê°’ì„ ê³µë°±ê³¼ \nê°’ì„ í†µí•´ ë¶„í• í•œë‹¤.
         tok_str = strtok(command, " \n");
-        // ¸í·É¾î°¡ nullÀÌ¸é °è¼Ó ½ÇÇà
+        // ëª…ë ¹ì–´ê°€ nullì´ë©´ ê³„ì† ì‹¤í–‰
         if (tok_str == NULL) continue;
         
 
-        // tok_str¸¦ cmd_atgv¿¡ ÀúÀå 
+        // tok_strë¥¼ cmd_atgvì— ì €ì¥ 
         cmd_argv[0] = tok_str;
 
-        //4¹ø ¹İº¹ null °ªÀ» °ø¹é°ú \n¸¦ ºĞÇÒ ÀúÀå
+        //4ë²ˆ ë°˜ë³µ null ê°’ì„ ê³µë°±ê³¼ \në¥¼ ë¶„í•  ì €ì¥
         for (cmd_argc = 1; cmd_argc < MAX_ARG; cmd_argc++) {
             if (tok_str = strtok(NULL, " \n")) {
                 cmd_argv[cmd_argc] = tok_str;
@@ -218,68 +218,68 @@ int main(int argc, char **argv)
         }
 
         /* search command in list and call command function */
-        // ¸í·É¾î°¡ Á¸Àç¿©ºÎ È®ÀÎ
+        // ëª…ë ¹ì–´ê°€ ì¡´ì¬ì—¬ë¶€ í™•ì¸
         i = search_command(cmd_argv[0]);
         if (i < 0) {
-            //¸í·É¾î°¡ Á¸ÀçÇÏÁö ¾Ê´Â´Ù¸é
+            //ëª…ë ¹ì–´ê°€ ì¡´ì¬í•˜ì§€ ì•ŠëŠ”ë‹¤ë©´
             printf("%s: command not found\n", cmd_argv[0]);
         } else {
-            //¸í·É¾î ¸®½ºÆ®¿¡¼­ ¸í·É¾î¸¦ Ã£¾Æ¼­ ÇÔ¼ö ½ÇÇà
+            //ëª…ë ¹ì–´ ë¦¬ìŠ¤íŠ¸ì—ì„œ ëª…ë ¹ì–´ë¥¼ ì°¾ì•„ì„œ í•¨ìˆ˜ ì‹¤í–‰
             if (cmd_list[i].cmd_func) {
-                // ÇØ´ç ÇÔ¼ö¿¡ ¸í·É¾î ÀÎÀÚ ³Ö¾î¼­ °á°ú°ª ret¿¡ ÀúÀå
+                // í•´ë‹¹ í•¨ìˆ˜ì— ëª…ë ¹ì–´ ì¸ì ë„£ì–´ì„œ ê²°ê³¼ê°’ retì— ì €ì¥
                 ret = cmd_list[i].cmd_func(cmd_argc, cmd_argv);
-                //retÀÌ 0ÀÌ¸é ¸®ÅÏ ¼º°ø
+                //retì´ 0ì´ë©´ ë¦¬í„´ ì„±ê³µ
                 if (ret == 0) {
                     printf("return success\n");
                 } 
-                // -2¸é »ç¿ë¹ı ¿¡·¯
+                // -2ë©´ ì‚¬ìš©ë²• ì—ëŸ¬
                 else if (ret == -2 && cmd_list[i].usage_func) {
                     printf("usage : ");
                     cmd_list[i].usage_func();
                 }
-                // ½ÇÆĞ ¿¡·¯
+                // ì‹¤íŒ¨ ì—ëŸ¬
                 else {
                     printf("return fail(%d)\n", ret);
                 }
-              // Ä¿¸àµå ÇÔ¼ö°¡ ¾ø´Ù¸é Ãâ·Â 
+              // ì»¤ë©˜ë“œ í•¨ìˆ˜ê°€ ì—†ë‹¤ë©´ ì¶œë ¥ 
             } else {
                 printf("no command function\n");
             }
         }
     } while (1);
 
-    //µ¿ÀûÇÒ´ç ÇØÁ¦
+    //ë™ì í• ë‹¹ í•´ì œ
     free(command);
     free(current_dir);
 
     return 0;
 }
 
-//help ¸í·É¾î ÇÔ¼ö
+//help ëª…ë ¹ì–´ í•¨ìˆ˜
 int cmd_help(int argc, char **argv)
 {
     int i;
-    //argc°¡ 1ÀÌ¸é ¸í·É¾î ÀÎÀÚ°¡ 1°³¶ó´Â °Í 
+    //argcê°€ 1ì´ë©´ ëª…ë ¹ì–´ ì¸ìê°€ 1ê°œë¼ëŠ” ê²ƒ 
     if (argc == 1) {
-        // ¸í·É¾î °³¼ö¸¸Å­ ±â´É Ãâ·Â
+        // ëª…ë ¹ì–´ ê°œìˆ˜ë§Œí¼ ê¸°ëŠ¥ ì¶œë ¥
         for (i = 0; i < command_num; i++) {
             printf("%32s: %s\n", cmd_list[i].cmd_str, cmd_list[i].comment);
         }
     } else if (argv[1] != NULL) {
-        // µÎ¹øÂ° ¸í·É¾î ÀÎÀÚ¿¡ ´ëÇØ¼­
+        // ë‘ë²ˆì§¸ ëª…ë ¹ì–´ ì¸ìì— ëŒ€í•´ì„œ
         i = search_command(argv[1]);
-        // nullÀÌ¸é ¾Æ·¡°ª ¹İÈ¯
+        // nullì´ë©´ ì•„ë˜ê°’ ë°˜í™˜
         if (i < 0) {
             printf("%s command not found\n", argv[1]);
         }
-        // nullÀÌ ¾Æ´Ï¸é »ç¿ë¹ı Ãâ·Â
+        // nullì´ ì•„ë‹ˆë©´ ì‚¬ìš©ë²• ì¶œë ¥
         else {
             if (cmd_list[i].usage_func) {
                 printf("usage : ");
                 cmd_list[i].usage_func();
                 return (0);
             }
-            // ¾ø´Ù¸é ¾ø´Ù°í Ãâ·Â
+            // ì—†ë‹¤ë©´ ì—†ë‹¤ê³  ì¶œë ¥
             else {
                 printf("no usage\n");
                 return (-2);
@@ -293,16 +293,16 @@ int cmd_mkdir(int argc, char **argv)
 {   
     int  ret = 0;
     char rpath[128];
-    // ¸í·É¾î ÀÎÀÚ°¡ 2°³¸é
+    // ëª…ë ¹ì–´ ì¸ìê°€ 2ê°œë©´
     if (argc == 2) {
-        //ÁøÂ¥ °æ·Î °¡Á®¿À±â
+        //ì§„ì§œ ê²½ë¡œ ê°€ì ¸ì˜¤ê¸°
         get_realpath(argv[1], rpath);
-        // ret¿¡ mkdir ÇÑ °ªÀÌ À½¼ö¸é ¿¡·¯
+        // retì— mkdir í•œ ê°’ì´ ìŒìˆ˜ë©´ ì—ëŸ¬
         if ((ret = mkdir(rpath, 0755)) < 0) {
             perror(argv[0]);
         }
     }
-    // ÀÎÀÚ°¡ 2°³°¡ ¾Æ´Ï¸é -2 ¸®ÅÏ -> »ç¿ë¹ı ¿¡·¯
+    // ì¸ìê°€ 2ê°œê°€ ì•„ë‹ˆë©´ -2 ë¦¬í„´ -> ì‚¬ìš©ë²• ì—ëŸ¬
     else {
         ret = -2; // syntax error
     }
