@@ -67,7 +67,7 @@ static cmd_t cmd_list[] = {
     {"rm",      cmd_rm,     usage_rm,       "remove file"},
 
     {"chmod",   cmd_chmod,  usage_chmod,    "change access permission"},
-    {"cat",     cmd_cat,    usage_cat,      ""},
+    {"cat",     cmd_cat,    usage_cat,      "print out the file"},
     {"cp",      cmd_cp,     usage_cp,       ""},
 };
 
@@ -543,7 +543,31 @@ int cmd_chmod(int argc, char** argv)
 
     return (ret);
 }
+//cat 기능 추가
+int cmd_cat(int argc, char** argv)
+{
+    int  ret = 0;
+    char path[128];
+    FILE* file;
+    char buf[BUFSIZ];
+    
+    if (argc == 2) {
+        get_realpath(argv[1], path);
+        file = path;
+        if ((fread(buf, sizeof(char)*2,4,file)) < 0) {
+            perror(argv[0]);
+            ret = -1;
+        }
+        else {
+            printf("%s", buf);
+        }
+    }
+    else {
+        ret = -2;
+    }
 
+    return (ret);
+}
 
 void usage_help(void)
 {
@@ -579,8 +603,13 @@ void usage_rm(void)
 {
     printf("usage: rm <file>\n");
 }
-//chmod을 위한 사용 방법
+//chmod을 위한 사용방법
 void usage_chmod(void)
 {
     printf("usage: chmod <Access Permission in Octal digit> <file>\nex) chmod 0644 test.txt\n");
+}
+//cat을 위한 사용방법
+void usage_cat(void)
+{
+    printf("usage: cat <filename>\n");
 }
