@@ -394,14 +394,14 @@ static const char* get_type_str(char type)
         return "UNKN";
     }
 }
-
+//ls에 symbolic 기능 추가
 int cmd_ls(int argc, char** argv)
 {
     int ret = 0;
     DIR* dp;
     struct dirent* dep;
     struct stat for_detail;
-
+    char buf[BUFSIZ];
 
     // ls만 입력되는 게 아니면 사용법 에러 -2 반환
     if (argc != 1) {
@@ -425,15 +425,22 @@ int cmd_ls(int argc, char** argv)
         else {
             print_access_permission(for_detail);//파일 종류 및 접근권한
             //하드링크 수 uid gid
-            printf("%s %d %d  ", dep->st_nlink, dep->st_uid, dep->st_gid,
+            printf("%s %d %d ", dep->st_nlink, dep->st_uid, dep->st_gid,
                 , dep->st_atime//접근시간
                 , dep->st_mtime//수정시간
             );
             //파일 생성시간
             char date[20];
             strftime(date, 20, "%b %d %H:%M", localtime(&file_info->st_mtime));
-            printf(" %s %s", date);
-            printf("%10ld %4s %s\n", dep->d_ino, get_type_str(dep->d_type), dep->d_name);
+            printf("%s %s ", date);
+            printf("%10ld %4s ", dep->d_ino, get_type_str(dep->d_type));
+            // 파일명과 심볼릭 링크 파일명
+            if (readlink(dep->d_name,buf,BUFSIZ) < 0) {
+                printf("%s\n", dep->d_name);
+            }
+            else {
+                printf("%s -> %s\n", dep->d_name, buf);
+            }
         }
     }
 
@@ -465,20 +472,30 @@ int cmd_quit(int argc, char** argv)
     exit(1);
     return 0;
 }
-//ln 기능 추가
+//ln 기능 추가 + symbolic 링크 기능 추가
 int cmd_ln(int argc, char** argv)
 {
     int  ret = 0;
-    char o_path1[128];
-    char n_path2[128];
+    char tmp[2];
+    char o_path[128];
+    char n_path[128];
 
     if (argc == 3) {
 
-        get_realpath(argv[1], o_path1);
-        get_realpath(argv[2], n_path2);
+        get_realpath(argv[1], o_path);
+        get_realpath(argv[2], n_path);
 
-        if ((ret = link(o_path1, n_path2)) < 0) {
+        if ((ret = link(o_path, n_path)) < 0) {
             perror(argv[0]);
+        }
+    }
+    else if (argc == 4) {
+
+        get_realpath(argv[1], tmp);
+        get_realpath(argv[2], o_path);
+        get_realpath(argv[3], n_path);
+        if (tmp = "-s" & (ret = symlink(o_path, n_path) < 0)) {
+            perror(argv[0]+" -s");
         }
     }
     else {
@@ -552,10 +569,10 @@ void usage_mv(void)
 {
     printf("mv <old_name> <new_name>\n");
 }
-//ln을 위한 사용방법
+//ln을 위한 사용방법 + symbolic 링크 기능 추가
 void usage_ln(void)
 {
-    printf("usage: ln <original file> <new file>\n");
+    printf("usage: ln [option : -s ] <original file> <new file>\n");
 }
 //rm을 위한 사용방법
 void usage_rm(void)
