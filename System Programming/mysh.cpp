@@ -457,7 +457,6 @@ int cmd_quit(int argc, char **argv)
     exit(1);
     return 0;
 }
-
 //ln 기능 추가
 int cmd_ln(int argc, char** argv)
 {
