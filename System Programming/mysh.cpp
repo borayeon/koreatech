@@ -424,8 +424,8 @@ int cmd_ls(int argc, char** argv)
         }
         else {
             print_access_permission(for_detail);//파일 종류 및 접근권한
-            //하드링크 수 uid gid
-            printf("%s %d %d ", dep->st_nlink, dep->st_uid, dep->st_gid,
+            //하드링크 수 uid gid 파일 크기 
+            printf("%s %d %d %d ", dep->st_nlink, dep->st_uid, dep->st_gid, dep->st_size
                 , dep->st_atime//접근시간
                 , dep->st_mtime//수정시간
             );
