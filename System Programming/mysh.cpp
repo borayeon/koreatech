@@ -66,7 +66,7 @@ static cmd_t cmd_list[] = {
     {"ln",      cmd_ln,     usage_ln,       "make hard link"},
     {"rm",      cmd_rm,     usage_rm,       "remove file"},
 
-    {"chmod",   cmd_chmod,  usage_chmod,    ""},
+    {"chmod",   cmd_chmod,  usage_chmod,    "change access permission"},
     {"cat",     cmd_cat,    usage_cat,      ""},
     {"cp",      cmd_cp,     usage_cp,       ""},
 };
@@ -506,6 +506,27 @@ int cmd_rm(int argc, char** argv)
 
     return (ret);
 }
+//chmod 기능 추가
+int cmd_chmod(int argc, char** argv)
+{
+    int  ret = 0;
+    char permission[4];
+    char path[128];
+
+    if (argc == 3) {
+        get_realpath(argv[1], permission);
+        get_realpath(argv[2], path);
+        if ((ret = chmod(permission, path)) < 0) {
+            perror(argv[0]);
+        }
+    }
+    else {
+        ret = -2;
+    }
+
+    return (ret);
+}
+
 
 void usage_help(void)
 {
@@ -540,4 +561,9 @@ void usage_ln(void)
 void usage_rm(void)
 {
     printf("usage: rm <file>\n");
+}
+//chmod을 위한 사용 방법
+void usage_chmod(void)
+{
+    printf("usage: chmod <Access Permission in Octal digit> <file>\nex) chmod 0644 test.txt\n");
 }
