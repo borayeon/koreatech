@@ -16,7 +16,7 @@
 
 // 함수 포인터 변수를 선언할 때는 그냥 typedef 없이 해도 되지만
 // 추가되면 선언할 때 함수명으로 간단하게 작성가능
-typedef int  (*cmd_func_t)(int argc, char **argv);
+typedef int  (*cmd_func_t)(int argc, char** argv);
 typedef void (*usage_func_t)(void);
 
 
@@ -63,9 +63,9 @@ static cmd_t cmd_list[] = {
     {"ls",      cmd_ls,      usage_ls,      "show directory contents"},
     {"quit",    cmd_quit,    NULL,          "terminate shell"},
 
-    {"ln",      cmd_ln,     usage_ln,       ""},
-    {"rm",      cmd_rm,     usage_rm,       ""},
-    
+    {"ln",      cmd_ln,     usage_ln,       "make hard link"},
+    {"rm",      cmd_rm,     usage_rm,       "remove file"},
+
     {"chmod",   cmd_chmod,  usage_chmod,    ""},
     {"cat",     cmd_cat,    usage_cat,      ""},
     {"cp",      cmd_cp,     usage_cp,       ""},
@@ -73,11 +73,11 @@ static cmd_t cmd_list[] = {
 
 // 상수는 수동적으로 관리하지 않게 계산식으로
 const int command_num = sizeof(cmd_list) / sizeof(cmd_t);
-static char *chroot_path = "/tmp/test"; // 상위 경로
-static char *current_dir; // 현재 경로
+static char* chroot_path = "/tmp/test"; // 상위 경로
+static char* current_dir; // 현재 경로
 
 //명령어 존재 유무 함수
-static int search_command(char *cmd)
+static int search_command(char* cmd)
 {
     int i;
 
@@ -93,24 +93,24 @@ static int search_command(char *cmd)
 }
 
 // 실제 주소 가져오기
-static void get_realpath(char *usr_path, char *result)
+static void get_realpath(char* usr_path, char* result)
 {
-    char *stack[32];
+    char* stack[32];
     int   index = 0;
     char  fullpath[128];
-    char *tok;
+    char* tok;
     int   i;
 #define PATH_TOKEN   "/"
-    
+
     //루트로 이동
     if (usr_path[0] == '/') {
         //문자열 복사 함수
-        strncpy(fullpath, usr_path, sizeof(fullpath)-1);
+        strncpy(fullpath, usr_path, sizeof(fullpath) - 1);
     }
     else {
         //문자열을 형식화 -> 다른 문자열로 저장
         //저장할 공간, 버퍼크기, 문자열 형식, 저장할 문자열들(현재 주소)
-        snprintf(fullpath, sizeof(fullpath)-1, "%s/%s", current_dir + strlen(chroot_path), usr_path);
+        snprintf(fullpath, sizeof(fullpath) - 1, "%s/%s", current_dir + strlen(chroot_path), usr_path);
     }
 
     /* parsing */
@@ -149,21 +149,21 @@ out:
     }
 }
 
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
-    char *command, *tok_str;
-    char *cmd_argv[MAX_ARG];
+    char* command, * tok_str;
+    char* cmd_argv[MAX_ARG];
     int  cmd_argc, i, ret;
 
     //명령어 동적할당
-    command = (char*) malloc(MAX_CMDLINE_SIZE);
+    command = (char*)malloc(MAX_CMDLINE_SIZE);
     //동적할당이 안되면 에러
     if (command == NULL) {
         perror("command malloc");
         exit(1);
     }
     // 현재 경로 동적 할당
-    current_dir = (char*) malloc(MAX_CMDLINE_SIZE);
+    current_dir = (char*)malloc(MAX_CMDLINE_SIZE);
     if (current_dir == NULL) {
         perror("current_dir malloc");
         free(command);
@@ -195,15 +195,15 @@ int main(int argc, char **argv)
         printf("%s $ ", current_dir + strlen(chroot_path));
 
         // command를 가져오는데 null값이면 while문 종료
-        if (fgets(command, MAX_CMDLINE_SIZE-1, stdin) == NULL) break;
+        if (fgets(command, MAX_CMDLINE_SIZE - 1, stdin) == NULL) break;
 
-        
+
         /* get arguments */
         // command 값을 공백과 \n값을 통해 분할한다.
         tok_str = strtok(command, " \n");
         // 명령어가 null이면 계속 실행
         if (tok_str == NULL) continue;
-        
+
 
         // tok_str를 cmd_atgv에 저장 
         cmd_argv[0] = tok_str;
@@ -212,7 +212,8 @@ int main(int argc, char **argv)
         for (cmd_argc = 1; cmd_argc < MAX_ARG; cmd_argc++) {
             if (tok_str = strtok(NULL, " \n")) {
                 cmd_argv[cmd_argc] = tok_str;
-            } else {
+            }
+            else {
                 break;
             }
         }
@@ -223,7 +224,8 @@ int main(int argc, char **argv)
         if (i < 0) {
             //명령어가 존재하지 않는다면
             printf("%s: command not found\n", cmd_argv[0]);
-        } else {
+        }
+        else {
             //명령어 리스트에서 명령어를 찾아서 함수 실행
             if (cmd_list[i].cmd_func) {
                 // 해당 함수에 명령어 인자 넣어서 결과값 ret에 저장
@@ -231,7 +233,7 @@ int main(int argc, char **argv)
                 //ret이 0이면 리턴 성공
                 if (ret == 0) {
                     printf("return success\n");
-                } 
+                }
                 // -2면 사용법 에러
                 else if (ret == -2 && cmd_list[i].usage_func) {
                     printf("usage : ");
@@ -241,8 +243,9 @@ int main(int argc, char **argv)
                 else {
                     printf("return fail(%d)\n", ret);
                 }
-              // 커멘드 함수가 없다면 출력 
-            } else {
+                // 커멘드 함수가 없다면 출력 
+            }
+            else {
                 printf("no command function\n");
             }
         }
@@ -256,7 +259,7 @@ int main(int argc, char **argv)
 }
 
 //help 명령어 함수
-int cmd_help(int argc, char **argv)
+int cmd_help(int argc, char** argv)
 {
     int i;
     //argc가 1이면 명령어 인자가 1개라는 것 
@@ -265,7 +268,8 @@ int cmd_help(int argc, char **argv)
         for (i = 0; i < command_num; i++) {
             printf("%32s: %s\n", cmd_list[i].cmd_str, cmd_list[i].comment);
         }
-    } else if (argv[1] != NULL) {
+    }
+    else if (argv[1] != NULL) {
         // 두번째 명령어 인자에 대해서
         i = search_command(argv[1]);
         // null이면 아래값 반환
@@ -289,8 +293,8 @@ int cmd_help(int argc, char **argv)
     return (0);
 }
 
-int cmd_mkdir(int argc, char **argv)
-{   
+int cmd_mkdir(int argc, char** argv)
+{
     int  ret = 0;
     char rpath[128];
     // 명령어 인자가 2개면
@@ -309,25 +313,26 @@ int cmd_mkdir(int argc, char **argv)
     return (ret);
 }
 
-int cmd_rmdir(int argc, char **argv)
+int cmd_rmdir(int argc, char** argv)
 {
     int  ret = 0;
     char rpath[128];
 
     if (argc == 2) {
         get_realpath(argv[1], rpath);
-        
+
         if ((ret = rmdir(rpath)) < 0) {
             perror(argv[0]);
         }
-    } else {
+    }
+    else {
         ret = -2; // syntax error
     }
 
     return (ret);
 }
 
-int cmd_cd(int argc, char **argv)
+int cmd_cd(int argc, char** argv)
 {
     int  ret = 0;
     char rpath[128];
@@ -338,14 +343,15 @@ int cmd_cd(int argc, char **argv)
         if ((ret = chdir(rpath)) < 0) {
             perror(argv[0]);
         }
-    } else {
+    }
+    else {
         ret = -2;
     }
 
     return (ret);
 }
 
-int cmd_mv(int argc, char **argv)
+int cmd_mv(int argc, char** argv)
 {
     int  ret = 0;
     char rpath1[128];
@@ -359,40 +365,41 @@ int cmd_mv(int argc, char **argv)
         if ((ret = rename(rpath1, rpath2)) < 0) {
             perror(argv[0]);
         }
-    } else {
+    }
+    else {
         ret = -2;
     }
 
     return (ret);
 }
 
-static const char *get_type_str(char type)
+static const char* get_type_str(char type)
 {
     switch (type) {
-        case DT_BLK:
-            return "BLK";
-        case DT_CHR:
-            return "CHR";
-        case DT_DIR:
-            return "DIR";
-        case DT_FIFO:
-            return "FIFO";
-        case DT_LNK:
-            return "LNK";
-        case DT_REG:
-            return "REG";
-        case DT_SOCK:
-            return "SOCK";
-        default: // include DT_UNKNOWN
-            return "UNKN";
+    case DT_BLK:
+        return "BLK";
+    case DT_CHR:
+        return "CHR";
+    case DT_DIR:
+        return "DIR";
+    case DT_FIFO:
+        return "FIFO";
+    case DT_LNK:
+        return "LNK";
+    case DT_REG:
+        return "REG";
+    case DT_SOCK:
+        return "SOCK";
+    default: // include DT_UNKNOWN
+        return "UNKN";
     }
 }
 
-int cmd_ls(int argc, char **argv)
+int cmd_ls(int argc, char** argv)
 {
     int ret = 0;
-    DIR *dp;
-    struct dirent *dep;
+    DIR* dp;
+    struct dirent* dep;
     struct stat for_detail;
 
 
@@ -452,7 +459,8 @@ void print_access_permission(struct stat for_detail) {
     printf((for_detail->st_mode & S_IXOTH) ? "x" : "-");
 
 }
-int cmd_quit(int argc, char **argv)
+
+int cmd_quit(int argc, char** argv)
 {
     exit(1);
     return 0;
@@ -479,8 +487,25 @@ int cmd_ln(int argc, char** argv)
 
     return (ret);
 }
+//rm 기능 추가
+int cmd_rm(int argc, char** argv)
+{
+    int  ret = 0;
+    char rpath[128];
 
+    if (argc == 2) {
+        get_realpath(argv[1], rpath);
 
+        if ((ret = unlink(rpath)) < 0) {
+            perror(argv[0]);
+        }
+    }
+    else {
+        ret = -2; // syntax error
+    }
+
+    return (ret);
+}
 
 void usage_help(void)
 {
@@ -511,4 +536,8 @@ void usage_ln(void)
 {
     printf("usage: ln <original file> <new file>\n");
 }
-
+//rm을 위한 사용방법
+void usage_rm(void)
+{
+    printf("usage: rm <file>\n");
+}
