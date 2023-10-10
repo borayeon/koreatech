@@ -393,19 +393,41 @@ int cmd_ls(int argc, char **argv)
     int ret = 0;
     DIR *dp;
     struct dirent *dep;
+    struct stat for_detail;
 
+
+    // ls만 입력되는 게 아니면 사용법 에러 -2 반환
     if (argc != 1) {
         ret = -2;
         goto out;
     }
 
+    // 현재 디렉토리를 열어 dp에 저장 열기 실패시 -1 반환
     if ((dp = opendir(".")) == NULL) {
         ret = -1;
         goto out;
     }
 
+    // dp 를 읽어서 다음을 출력함
+    // 번호 타입 이름 각파일 및 디렉토리 접근권한 출력 
+    // 파일 종류, 파일 UID, GID. 파일의 접근, 수정, 생성 시간 값. 하드 링크 수
     while (dep = readdir(dp)) {
-        printf("%10ld %4s %s\n", dep->d_ino, get_type_str(dep->d_type), dep->d_name);
+        if (stat(dep, for_detail) != -1) {
+            perror("stat error")
+        }
+        else {
+            print_access_permission(for_detail);//파일 종류 및 접근권한
+            //하드링크 수 uid gid
+            printf("%s %d %d  ", dep->st_nlink, dep->st_uid, dep->st_gid,
+                , dep->st_atime//접근시간
+                , dep->st_mtime//수정시간
+            );
+            //파일 생성시간
+            char date[20];
+            strftime(date, 20, "%b %d %H:%M", localtime(&file_info->st_mtime));
+            printf(" %s %s", date);
+            printf("%10ld %4s %s\n", dep->d_ino, get_type_str(dep->d_type), dep->d_name);
+        }
     }
 
     closedir(dp);
@@ -414,6 +436,22 @@ out:
     return (ret);
 }
 
+void print_access_permission(struct stat for_detail) {
+
+    // 파일 종류 및 권한 출력
+    printf("\t");
+    printf((S_ISDIR(for_detail->st_mode)) ? "d" : "-");
+    printf((for_detail->st_mode & S_IRUSR) ? "r" : "-");
+    printf((for_detail->st_mode & S_IWUSR) ? "w" : "-");
+    printf((for_detail->st_mode & S_IXUSR) ? "x" : "-");
+    printf((for_detail->st_mode & S_IRGRP) ? "r" : "-");
+    printf((for_detail->st_mode & S_IWGRP) ? "w" : "-");
+    printf((for_detail->st_mode & S_IXGRP) ? "x" : "-");
+    printf((for_detail->st_mode & S_IROTH) ? "r" : "-");
+    printf((for_detail->st_mode & S_IWOTH) ? "w" : "-");
+    printf((for_detail->st_mode & S_IXOTH) ? "x" : "-");
+
+}
 int cmd_quit(int argc, char **argv)
 {
     exit(1);
