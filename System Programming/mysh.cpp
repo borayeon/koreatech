@@ -68,7 +68,7 @@ static cmd_t cmd_list[] = {
 
     {"chmod",   cmd_chmod,  usage_chmod,    "change access permission"},
     {"cat",     cmd_cat,    usage_cat,      "print out the file"},
-    {"cp",      cmd_cp,     usage_cp,       ""},
+    {"cp",      cmd_cp,     usage_cp,       "copy the target file"},
 };
 
 // 상수는 수동적으로 관리하지 않게 계산식으로
@@ -553,13 +553,60 @@ int cmd_cat(int argc, char** argv)
     
     if (argc == 2) {
         get_realpath(argv[1], path);
-        file = path;
+        
+        if ((file = fopen(path, "r") == NULL) {
+            perror(argv[0]+" target file");
+            fclose(file);
+            ret = -1;
+            return (ret);
+        }
         if ((fread(buf, sizeof(char)*2,4,file)) < 0) {
             perror(argv[0]);
             ret = -1;
         }
         else {
             printf("%s", buf);
+        }
+    }
+    else {
+        ret = -2;
+    }
+    fclose(file);
+    return (ret);
+}
+//cp 기능 추가
+int cmd_cp(int argc, char** argv)
+{
+    int  ret = 0;
+    char rpath1[128];
+    char rpath2[128];
+    FILE* file1, file2;
+
+    char buf[BUFSIZ];
+
+    if (argc == 3) {
+        get_realpath(argv[1], rpath1);
+        get_realpath(argv[1], rpath2);
+        file1 = fopen(rpath1,"r");
+        if (file1 == NULL) {
+            perror(argv[0]);
+            ret = -1;
+        }
+        else {
+            file2 = fopen(rpath2, "wb"); // Open file2 in write mode
+            if (file2 == NULL) {
+                perror(argv[0]);
+                ret = -1;
+            }
+            else {
+                size_t bytesRead = fread(buf, sizeof(char), BUFSIZ, file1);
+                while (bytesRead > 0) {
+                    fwrite(buf, sizeof(char), bytesRead, file2);
+                    bytesRead = fread(buf, sizeof(char), BUFSIZ, file1);
+                }
+                fclose(file2);
+            }
+            fclose(file1);
         }
     }
     else {
@@ -612,4 +659,9 @@ void usage_chmod(void)
 void usage_cat(void)
 {
     printf("usage: cat <filename>\n");
+}
+//cp를 위한 사용방법
+void usage_cp(void)
+{
+    printf("usage: cp <original file> <new file>\n");
 }
