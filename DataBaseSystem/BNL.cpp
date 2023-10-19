@@ -3,8 +3,8 @@
 #include <chrono>
 #include <windows.h>
 #include <psapi.h>
-#include <chrono> // ½Ã°£ ÃøÁ¤À» À§ÇÑ Çì´õ
-#include <cstdlib> // ¸Ş¸ğ¸® »ç¿ë·®À» ÃøÁ¤ÇÏ±â À§ÇÑ Çì´õ
+#include <chrono> // ì‹œê°„ ì¸¡ì •ì„ ìœ„í•œ í—¤ë”
+#include <cstdlib> // ë©”ëª¨ë¦¬ ì‚¬ìš©ëŸ‰ì„ ì¸¡ì •í•˜ê¸° ìœ„í•œ í—¤ë”
 #define _CRT_SECURE_NO_WARNINGS
 using namespace std;
 
@@ -13,7 +13,7 @@ static const int ing_size = 100;
 static const int ven_size = 300;
 
 
-//part Å×ÀÌºí ±¸Á¶Ã¼
+//part í…Œì´ë¸” êµ¬ì¡°ì²´
 struct part {
 	int PARTKEY;
 	char NAME[100];
@@ -25,7 +25,7 @@ struct part {
 	float RETAILPRICE;
 	char COMMENT[30];
 };
-//partsupp Å×ÀÌºí ±¸Á¶Ã¼
+//partsupp í…Œì´ë¸” êµ¬ì¡°ì²´
 struct partsupp {
 	int PARTKEY;
 	int SUPPKEY;
@@ -33,17 +33,17 @@ struct partsupp {
 	float SUPPLYCOST;
 	char COMMNET[500];
 };
-//ÆÄÀÏ ÀĞ¾î¼­ ÀúÀåÇÏ´Â ÇÔ¼ö
+//íŒŒì¼ ì½ì–´ì„œ ì €ì¥í•˜ëŠ” í•¨ìˆ˜
 void read_driving_file(const char* file_name, struct part* p) {
 	ifstream file(file_name);
 	
 	if (!file.is_open()) {
-		cout << "ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù." << endl;
+		cout << "íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." << endl;
 		return;
 	}
 	for (int i = 0; i < ing_size; i++) {
 		file >> p[i].PARTKEY;
-		file.ignore(); // '|' ¹«½Ã
+		file.ignore(); // '|' ë¬´ì‹œ
 
 		file.getline(p[i].NAME, 100, '|');
 		file.getline(p[i].MFGR, 20, '|');
@@ -51,21 +51,21 @@ void read_driving_file(const char* file_name, struct part* p) {
 		file.getline(p[i].TYPE, 30, '|');
 
 		file >> p[i].SIZE;
-		file.ignore(); // '|' ¹«½Ã
+		file.ignore(); // '|' ë¬´ì‹œ
 
 		file.getline(p[i].CONTAINER, 15, '|');
 		file >> p[i].RETAILPRICE;
-		file.ignore(); // '|' ¹«½Ã
+		file.ignore(); // '|' ë¬´ì‹œ
 
 		file.getline(p[i].COMMENT, 30);
 	}
 	file.close();
 }
-//ÆÄÀÏ ÀĞ¾î¼­ ÀúÀåÇÏ´Â ÇÔ¼ö
+//íŒŒì¼ ì½ì–´ì„œ ì €ì¥í•˜ëŠ” í•¨ìˆ˜
 void read_driven_file(const char* file_name, struct partsupp * ps) {
 	ifstream file(file_name);
 	if (!file.is_open()) {
-		cout << "ÆÄÀÏÀ» ¿­ ¼ö ¾ø½À´Ï´Ù." << endl;
+		cout << "íŒŒì¼ì„ ì—´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤." << endl;
 		return;
 	}
 	for (int i = 0; i < ven_size; i++) {
@@ -123,7 +123,7 @@ int main(int argc, char* argv[]) {
 	struct part driving_file[ing_size];
 	struct partsupp driven_file[ven_size];
 
-	// ½ÃÀÛ ½Ã°£ ÃøÁ¤
+	// ì‹œì‘ ì‹œê°„ ì¸¡ì •
 	auto start_time = std::chrono::high_resolution_clock::now();
 
 	read_driving_file(file1, driving_file);
@@ -132,7 +132,7 @@ int main(int argc, char* argv[]) {
 	//print_part(driving_file);
 	//print_partsupp(driven_file);
 
-	// ÀúÀåÇÒ ÆÄÀÏ »ı¼º
+	// ì €ì¥í•  íŒŒì¼ ìƒì„±
 	ofstream output_file("output.txt");
 
 	int record_z = 0;
@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
 
 	// Block Nested Loops Join
 	for (int i = 0; i < ing_size/ key_bunch; i++) {
-		//key ¹­À½ »ı¼º 
+		//key ë¬¶ìŒ ìƒì„± 
 		for (int z = record_z; z < key_bunch; z++) {
 			key_list[z % key_bunch] = (driving_file[z].PARTKEY);
 		}
@@ -148,18 +148,18 @@ int main(int argc, char* argv[]) {
 		for (int j = 0; j < ven_size; j++) {
 			for (int k = 0; k < key_bunch; k++) {
 				if (key_list[k] == driven_file[j].PARTKEY) {
-					int tmp = k + record_z;// 100 0¹øÂ°  -1 ¸¶Áö¸·?  1 % 10 
+					int tmp = k + record_z;// 100 0ë²ˆì§¸  -1 ë§ˆì§€ë§‰?  1 % 10 
 					output_file << driving_file[tmp].PARTKEY << "|"
 						<< driving_file[tmp].NAME << "|"
 						<< driving_file[tmp].MFGR << "|"
-						<< driving_file[tmp].BRAND << "|"//1¹ø[0] °ú 1¹ø[200] 
+						<< driving_file[tmp].BRAND << "|"//1ë²ˆ[0] ê³¼ 1ë²ˆ[200] 
 						<< driving_file[tmp].TYPE << "|"
 						<< driving_file[tmp].SIZE << "|"
 						<< driving_file[tmp].CONTAINER << "|"
 						<< driving_file[tmp].RETAILPRICE << "|"
 						<< driving_file[tmp].COMMENT << "|";
 
-					// driven_file[j]ÀÇ Á¤º¸¸¦ »õ·Î¿î ÆÄÀÏ¿¡ ÀÌ¾î¼­ ¾²±â
+					// driven_file[j]ì˜ ì •ë³´ë¥¼ ìƒˆë¡œìš´ íŒŒì¼ì— ì´ì–´ì„œ ì“°ê¸°
 					output_file << driven_file[j].SUPPKEY << "|"
 						<< driven_file[j].AVAILQTY << "|"
 						<< driven_file[j].SUPPLYCOST << "|"
@@ -169,35 +169,17 @@ int main(int argc, char* argv[]) {
 		}
 		record_z += key_bunch;
 	}
-	// Á¾·á ½Ã°£ ÃøÁ¤
+	// ì¢…ë£Œ ì‹œê°„ ì¸¡ì •
 	auto end_time = std::chrono::high_resolution_clock::now();
 	auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count();
-	std::cout << "¼öÇà ½Ã°£: " << duration / 1000.0 << " ms" << std::endl;
-	// ¸Ş¸ğ¸® Footprint ÃøÁ¤
+	std::cout << "ìˆ˜í–‰ ì‹œê°„: " << duration / 1000.0 << " ms" << std::endl;
+	// ë©”ëª¨ë¦¬ Footprint ì¸¡ì •
 	PROCESS_MEMORY_COUNTERS_EX pmc;
 	GetProcessMemoryInfo(GetCurrentProcess(), (PROCESS_MEMORY_COUNTERS*)&pmc, sizeof(pmc));
 	SIZE_T memory = pmc.PrivateUsage;
-	std::cout << "¸Ş¸ğ¸® Footprint: " << memory / 1024 << " KB" << std::endl;
+	std::cout << "ë©”ëª¨ë¦¬ Footprint: " << memory / 1024 << " KB" << std::endl;
 
 	output_file.close();
 
 	return 0;
 }
-
-
-// µÎ ÆÄÀÏ¿¡ ´ëÇØ¼­ ºÒ·¯¿À±â ¼öÇà
-// ing°¡ n°³ÀÇ key ¹­À½À¸·Î È£Ãâ
-// en¿¡ ´ëÇØ¼­ Å½»ö, Å½»öµÈ °á°ú¿¡ ´ëÇØ¼­ ing + µ¡ºÙÀÌ±â
-// en¸¦ ÀüÃ¼ Å½»öÈÄ ´ÙÀ½ key ¹­À½À¸·Î Àç¼öÇà
-// Á¾·á
-// 
-
-
-// (n°³ÀÇ ¶óÀÎ = driving Å×ÀÌºí)À» ¹­¾î¼­ ÇÑ¹ø¿¡ ¼­Ä¡
-// PART Å×ÀÌºí¿¡¼­ nÁÙÀ» ºÒ·¯¿À±â
-// nÁÙ¿¡¼­ key°ª¸¸ ÃßÃâÇÑ ¹è¿­ »ı¼º
-// ¸®½ºÆ® °ªÀ» ÀÌ¿ëÇÏ¿© driven Å×ÀÌºí¿¡ key°ª¸¸ ¸ÅÄªÇÏ¿© ÃßÃâ
-
-// [´Ü, Á¤·ÄÀº ÇÏÁö ¾ÊÀ½, Á¤·ÄÇÏ¸é Á¤·ÄÇÏ´Â ½Ã°£ÀÌ Ãß°¡µÊ.]
-// °°Àº °ªÀÌ¸é driving Å×ÀÌºí ÀÌÈÄ¿¡ add
-// ´Ù¸¥ °ªÀÌ¸é pass
